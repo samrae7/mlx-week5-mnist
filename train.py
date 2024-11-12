@@ -15,17 +15,13 @@ criterion = nn.CrossEntropyLoss(size_average=True)
 
 wandb.init(project='multimodal_transformers', name='decoder')
 
-epochs = 1000
-
-# corpus ="aabbccaabbcc"
+epochs = 2000
 
 tuples = []
-# for w1, w2, w3, w4, w5, w6 in zip(corpus, corpus[1:], corpus[2:], corpus[3:], corpus[4:], corpus[5:]):
-#     input = ['<s>'] + [w1, w2, w3, w4, w5, w6]
-#     target = [w1, w2, w3, w4, w5, w6, '<e>']
-#     tuples.append((input, target))
 
+# tuples = [(['<s>', 'a', 'a', 'b','b', 'c', 'c'],['a', 'a', 'b', 'b','c', 'c', '<e>'])]
 tuples = [(['<s>', 'a', 'a', 'b','b', 'c', 'c'],['a', 'a', 'b', 'b','c', 'c', '<e>']), (['<s>', 'b', 'b', 'c','c', 'd', 'd'],['b', 'b', 'c', 'c','d', 'd', '<e>'])]
+# tuples = [(['<s>', 'b', 'b', 'c','c', 'd', 'd'],['b', 'b', 'c', 'c','d', 'd', '<e>'])]
 
 def process_data(data):
     tokenised = [tokenise(char) for char in data]
@@ -36,20 +32,19 @@ data = [(process_data(input), process_data(target)) for input, target in tuples 
 for i in range(epochs):
     epoch_loss_sum = 0
     prevLoss = 100
+    optim.zero_grad()
     # for input_batch,target_batch in tqdm(dataloader, total=len(dataloader)):
     for input,target in data:
         print(input, target)
-        optim.zero_grad()
         output = decoder(input)
 #       # this squashes batch and sequence into one. But look up exactly how
         loss = criterion(output.view(-1, vocab_size), target.view(-1))
         loss.backward()
-        optim.step()
+        epoch_loss_sum += loss.item()
         if(loss.item() > prevLoss * 4):
             print("SPIKE", input, output)
         prevLoss = loss.item()
-        epoch_loss_sum += loss.item()
-
+    optim.step()
     epoch_loss = epoch_loss_sum / len(data)
     wandb.log({'epoch loss': epoch_loss})
 print(f"final loss: {epoch_loss}")
@@ -78,5 +73,18 @@ for str in test_strings:
    result = infer(decoder, str)
    print(f"result for {str}: {result}")
 
+
+# I am getting these kind of results
+# Related to this: https://chatgpt.com/share/67338f8a-4fa8-8007-844c-230d1872b502
+# Try: batching. Increasing data set size. Shuffling
+# result for aabb: babbc
+# result for a: ba
+# result for aa: bab
+# result for aab: babb
+# result for aabbc: babbcc
+# result for b: bb
+# result for bb: bbc
+# result for bbc: bbcc
+# result for bbcc: bbccd
 
 
