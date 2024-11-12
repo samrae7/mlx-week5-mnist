@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from transformer_block import TransformerBlock
 
-tokens = {"<s>": 0, "a": 1, "b": 2, "c": 3, '<e>': 4}
+tokens = {"<s>": 0, "a": 1, "b": 2, "c": 3, "d": 4,'<e>': 5}
 chars = {value: key for key, value in tokens.items()}
 
 def tokenise(char):

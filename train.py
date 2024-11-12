@@ -17,7 +17,7 @@ wandb.init(project='multimodal_transformers', name='decoder')
 
 epochs = 1000
 
-corpus ="aabbccaabbcc"
+# corpus ="aabbccaabbcc"
 
 tuples = []
 # for w1, w2, w3, w4, w5, w6 in zip(corpus, corpus[1:], corpus[2:], corpus[3:], corpus[4:], corpus[5:]):
@@ -25,7 +25,7 @@ tuples = []
 #     target = [w1, w2, w3, w4, w5, w6, '<e>']
 #     tuples.append((input, target))
 
-tuples = [(['<s>', 'a', 'a', 'b','b', 'c', 'c'],['a', 'a', 'b', 'b','c', 'c', '<e>'])]
+tuples = [(['<s>', 'a', 'a', 'b','b', 'c', 'c'],['a', 'a', 'b', 'b','c', 'c', '<e>']), (['<s>', 'b', 'b', 'c','c', 'd', 'd'],['b', 'b', 'c', 'c','d', 'd', '<e>'])]
 
 def process_data(data):
     tokenised = [tokenise(char) for char in data]
@@ -73,7 +73,7 @@ def infer(model, input_sequence):
     return ''.join(output_tokens)
 
 
-test_strings = ['aabb','a','aa', 'aab', 'aabbc']
+test_strings = ['aabb','a','aa', 'aab', 'aabbc', 'b','bb','bbc', 'bbcc']
 for str in test_strings:
    result = infer(decoder, str)
    print(f"result for {str}: {result}")
