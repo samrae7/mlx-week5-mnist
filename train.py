@@ -6,8 +6,8 @@ import torch.nn as nn
 from decoder import Decoder, chars, tokenise
 
 vocab_size = len(chars)
-embed_dim = 12
-decoder = Decoder(vocab_size,embed_dim)
+embed_dim = 32
+decoder = Decoder(vocab_size,embed_dim, num_layers=4)
 
 optim = torch.optim.Adam(decoder.parameters(), lr=0.001)
 
@@ -15,15 +15,17 @@ criterion = nn.CrossEntropyLoss(size_average=True)
 
 wandb.init(project='multimodal_transformers', name='decoder')
 
-epochs = 100
+epochs = 1000
 
 corpus ="aabbccaabbcc"
-chars = list(corpus)
+
 tuples = []
-for w1, w2, w3, w4, w5, w6 in zip(corpus, corpus[1:], corpus[2:], corpus[3:], corpus[4:], chars[5:]):
-    input = ['<s>'] + [w1, w2, w3, w4, w5]
-    target = [w1, w2, w3, w4, w5, w6]
-    tuples.append((input, target))
+# for w1, w2, w3, w4, w5, w6 in zip(corpus, corpus[1:], corpus[2:], corpus[3:], corpus[4:], corpus[5:]):
+#     input = ['<s>'] + [w1, w2, w3, w4, w5, w6]
+#     target = [w1, w2, w3, w4, w5, w6, '<e>']
+#     tuples.append((input, target))
+
+tuples = [(['<s>', 'a', 'a', 'b','b', 'c', 'c'],['a', 'a', 'b', 'b','c', 'c', '<e>'])]
 
 def process_data(data):
     tokenised = [tokenise(char) for char in data]
@@ -33,7 +35,7 @@ data = [(process_data(input), process_data(target)) for input, target in tuples 
 
 for i in range(epochs):
     epoch_loss_sum = 0
-    prevLoss = 20000
+    prevLoss = 100
     # for input_batch,target_batch in tqdm(dataloader, total=len(dataloader)):
     for input,target in data:
         print(input, target)
@@ -56,21 +58,25 @@ wandb.finish()
 def infer(model, input_sequence):
     model.eval()
     tokens = [tokenise(char) for char in input_sequence]
+    # add start token
+    tokens = [tokenise('<s>')] + tokens
 
     with torch.no_grad():
-        logits = model(torch.tensor(tokens).unsqueeze(0))
+        logits = model(torch.tensor(tokens))
 
     probabilities = nn.functional.softmax(logits, dim=-1)
 
     predicted_tokens = torch.argmax(probabilities, dim=-1)
 
-    items = [token.item() for token in predicted_tokens.squeeze()]
+    items = [token.item() for token in predicted_tokens]
     output_tokens = [chars[token] for token in items]
     return ''.join(output_tokens)
 
 
-test_strings = ['aabbc','abbcc','bbcca', 'bccaa', 'ccaab', 'caabc', 'ab', 'ab', 'cc', 'ca']
+test_strings = ['aabb','a','aa', 'aab', 'aabbc']
 for str in test_strings:
    result = infer(decoder, str)
    print(f"result for {str}: {result}")
+
+
 
