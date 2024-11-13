@@ -9,7 +9,7 @@ class DecoderBlock(nn.Module):
         super().__init__()
         self.num_layers = num_layers
 
-        self.self_attn = SelfAttention(embed_dim=embed_dim, num_heads=4)
+        self.masked_self_attn = SelfAttention(embed_dim=embed_dim, num_heads=4, masked=True)
         self.cross_attn = CrossAttention(encoder_embed_dim=encoder_embed_dim, decoder_embed_dim=embed_dim, d_k=64)
         self.ff = FeedForward(embed_dim)
 
@@ -18,7 +18,7 @@ class DecoderBlock(nn.Module):
         self.ff_norm = nn.LayerNorm(normalized_shape=(embed_dim,))
 
     def forward(self, decoder_io, encoder_out):
-        self_attn_embs = self.self_attn(decoder_io)
+        self_attn_embs = self.masked_self_attn(decoder_io)
         self_attn_embs = self.self_attn_norm(self_attn_embs + decoder_io)
 
         cross_attn_embs = self.cross_attn(self_attn_embs, encoder_out)

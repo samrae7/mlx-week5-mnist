@@ -13,6 +13,8 @@ num_decoder_blocks = 4
 class Transformer(nn.Module):
     def __init__(self, max_seq_length = 10):
         super().__init__()
+        # TODO dont hardcode 784
+        self.encoder_projection = nn.Linear(784, encoder_embed_dim)
         # vocab size matches ?in this case yes because bothe represent digits 0 - 9
         self.encoder_emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=encoder_embed_dim)        
         self.decoder_emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=decoder_embed_dim)        
@@ -22,12 +24,13 @@ class Transformer(nn.Module):
         self.enc_pos_encodings = self.create_positional_encoding(max_seq_length, encoder_embed_dim)
         self.dec_pos_encodings = self.create_positional_encoding(max_seq_length, decoder_embed_dim)
     
-    def forward(self, encoder_input, decoder_input, src_mask=None, tgt_mask=None):
-        enc_embs = self.encoder_emb(encoder_input)
+    def forward(self, encoder_input, decoder_input):
+        enc_embs = self.encoder_projection(encoder_input)
+        # enc_embs = self.encoder_emb(enc_embs)
         #  change when batching
         
         # add positional encodings
-        seq_length = enc_embs.size(0)
+        seq_length = enc_embs.size(1)
         enc_pos_encodings = self.enc_pos_encodings[:seq_length, :].to(enc_embs.device)
         enc_embs += enc_pos_encodings
         encoder_out = self.encoder(enc_embs)

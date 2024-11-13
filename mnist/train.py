@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 
+from dataset import CombinedMNIST
 from transformer import Transformer
 
 # Create a simple dataset
@@ -17,7 +18,8 @@ class SimpleDigitDataset(Dataset):
         return self.encoder_inputs[idx], self.decoder_inputs[idx]
 
 # Create dataset and dataloader
-dataset = SimpleDigitDataset(num_samples=100, seq_length=10)
+# dataset = SimpleDigitDataset(num_samples=100, seq_length=10)
+dataset = CombinedMNIST()
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 # Initialize model

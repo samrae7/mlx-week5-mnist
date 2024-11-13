@@ -17,30 +17,25 @@ class CombinedMNIST(torch.utils.data.Dataset):
         return self.ln
     
     def __getitem__(self, idx):
-        # Randomly sample 4 indices from the dataset
         idx = random.sample(range(self.ln), 4)
-        store = []
-        label = []
+        quadrant_tensors = []
+        labels = []
         
-        # Get images and labels for each index
         for i in idx:
             x, y = self.ds[i]
-            store.append(x)
-            label.append(y)
+            # Convert PIL image to tensor and flatten
+            x_tensor = self.tf(x).view(-1)  # Will be shape [784] (28*28)
+            quadrant_tensors.append(x_tensor)
+            labels.append(y)
         
-        # Create new 56x56 image
-        img = Image.new('L', (56, 56))
-        # Paste images in quadrants
-        img.paste(store[0], (0, 0))
-        img.paste(store[1], (28, 0))
-        img.paste(store[2], (0, 28))
-        img.paste(store[3], (28, 28))
+        # Stack the quadrant tensors into a single tensor
+        quadrants = torch.stack(quadrant_tensors)  # Shape will be [4, 784]
+        labels = torch.tensor(labels)  # Shape will be [4]
         
-        # Convert the combined image to a tensor
-        img_tensor = self.tf(img)
-        
-        return img_tensor, torch.tensor(label)
-    
+        return quadrants, labels
+
+# Test it
 ds = CombinedMNIST()
-img, label = ds[0]  # Get first item
-print(label)
+quadrants, labels = ds[0]
+print("Quadrants shape:", quadrants.shape)  # Should be [4, 784]
+print("Labels shape:", labels.shape)      # Should be [4]

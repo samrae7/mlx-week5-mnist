@@ -1,12 +1,12 @@
+import torch
 import torch.nn as nn
 
-
 class SelfAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads):
+    def __init__(self, embed_dim, num_heads, masked=False):
         super().__init__()
-
         if embed_dim % num_heads != 0:
             raise ValueError(f"embed_dim {embed_dim} must be divisible by num_heads {num_heads}.")
+        self.masked = masked
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
         self.linear_q = nn.Linear(embed_dim, embed_dim)
@@ -27,6 +27,10 @@ class SelfAttention(nn.Module):
         transposed_k = k.transpose(-2,-1)
         scaling_factor = self.head_dim**0.5
         attention_scores = (q @ transposed_k) / scaling_factor
+        if(self.masked):
+                base = torch.full_like(attention_scores, float("-inf"))
+                mask = torch.triu(base, diagonal=1)
+                attention_scores = attention_scores + mask
         attention_weights = self.softmax(attention_scores)
         context_emb = attention_weights @ v
         # this has shape batch_size, num_heads, seq_length, head_dim,
