@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from mnist.decoder import Decoder
-from mnist.encoder import Encoder
+from mnist_decoder import MNISTDecoder
+from encoder import Encoder
 
 vocab_size = 10
 encoder_embed_dim = 64
@@ -14,10 +14,10 @@ class Transformer(nn.Module):
     def __init__(self, max_seq_length = 10):
         super().__init__()
         # vocab size matches ?in this case yes because bothe represent digits 0 - 9
-        self.encoder_emb = nn.Embedding(num_embeddings=vocab_size, embed_dim=encoder_embed_dim)        
-        self.decoder_emb = nn.Embedding(num_embeddings=vocab_size, embed_dim=decoder_embed_dim)        
+        self.encoder_emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=encoder_embed_dim)        
+        self.decoder_emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=decoder_embed_dim)        
         self.encoder = Encoder(embed_dim=encoder_embed_dim, num_layers=num_encoder_blocks)
-        self.decoder = Decoder(embed_dim=decoder_embed_dim, num_layers=num_decoder_blocks, encoder_embed_dim=encoder_embed_dim)
+        self.decoder = MNISTDecoder(embed_dim=decoder_embed_dim, encoder_embed_dim=encoder_embed_dim, num_layers=num_decoder_blocks)
         self.final_layer = nn.Linear(decoder_embed_dim, vocab_size)
         self.enc_pos_encodings = self.create_positional_encoding(max_seq_length, encoder_embed_dim)
         self.dec_pos_encodings = self.create_positional_encoding(max_seq_length, decoder_embed_dim)

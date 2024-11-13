@@ -1,8 +1,9 @@
 import torch.nn as nn
 
 
-class SelfAttention(nn.module):
+class SelfAttention(nn.Module):
     def __init__(self, embed_dim, num_heads):
+        super().__init__()
 
         if embed_dim % num_heads != 0:
             raise ValueError(f"embed_dim {embed_dim} must be divisible by num_heads {num_heads}.")
@@ -18,6 +19,7 @@ class SelfAttention(nn.module):
         q = self.linear_q(input)
         k = self.linear_k(input)
         v = self.linear_v(input)
+        #  starts with seq_length,embed_dim
         # heads should have shape: [batch_size, num_heads, seq_length, head_dim]
         q = q.view(q.shape[0], q.shape[1], self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(k.shape[0], k.shape[1], self.num_heads, self.head_dim).transpose(1, 2)
@@ -28,7 +30,7 @@ class SelfAttention(nn.module):
         attention_weights = self.softmax(attention_scores)
         context_emb = attention_weights @ v
         # this has shape batch_size, num_heads, seq_length, head_dim,
-        # so we need to do something to get batch_size, seq_length, emb_dim ie. 2,4,12
+        # so we need to do something to get batch_size, seq_length, emb_dim, 
         context_emb = context_emb.transpose(1, 2).contiguous()  # [batch_size, seq_length, num_heads, head_dim]
         context_emb = context_emb.view(context_emb.shape[0], context_emb.shape[1], -1)  # [batch_size, seq_length, embed_dim]
         context_emb = self.linear_out(context_emb)

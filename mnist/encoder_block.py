@@ -1,12 +1,12 @@
 import torch.nn as nn
 
-from mnist.self_attention import SelfAttention
+from self_attention import SelfAttention
 
 class EncoderBlock(nn.Module):
   def __init__(self, embed_dim, num_layers=4):
     super().__init__()
     self.num_layers = num_layers
-    self.attention = SelfAttention(embed_dim, 2)
+    self.attention = SelfAttention(embed_dim, 4)
 
     self.attn_norm = nn.LayerNorm(normalized_shape=(embed_dim,))
     self.output_norm = nn.LayerNorm(normalized_shape=(embed_dim,))
