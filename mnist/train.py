@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import wandb
 
-from dataset import CombinedMNIST
+from dataset import START_TOKEN, CombinedMNIST
 from transformer import Transformer
 
 dataset = CombinedMNIST()
@@ -39,7 +39,7 @@ def test_pass_through(model):
 
 # test_pass_through(model)
 
-def train(model, num_epochs):
+def train(model, num_epochs, save_path='model_weights.pth'):
     criterion = nn.CrossEntropyLoss(size_average=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -65,7 +65,44 @@ def train(model, num_epochs):
         avg_epoch_loss = epoch_loss / num_batches
         print(f"Epoch: {epoch + 1}, avg_loss:{avg_epoch_loss:.4f}")
         wandb.log({'epoch': epoch, 'avg_loss': avg_epoch_loss})
+    torch.save(model.state_dict(), save_path)
+    print(f"Model weights saved to {save_path}")
     wandb.finish()
+
+def validate(model, model_path='model_weights.pth'):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    start_tensor = torch.tensor([[START_TOKEN]]).to(device)
+
+    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
+    model.to(device)
+    model.eval()
+
+    encoder_batch, decoder_batch, label_batch = next(iter(dataloader))
+    encoder_batch = encoder_batch.to(device)
+    decoder_batch = decoder_batch.to(device)
+    label_batch = label_batch.to(device)
+
+    label = label_batch[:1, :]
+    predicted_sequence = [START_TOKEN]
+    decoder_input = start_tensor
+    # get batch of 1
+    enc_in = encoder_batch[:1, :]
+    with torch.no_grad():
+        # logits = model(enc_in, start_tensor)
+        for _ in range(encoder_batch.size(1)):
+            logits = model(enc_in, decoder_input)
+            # only want probs from most recent logit in sequence
+            probs = nn.functional.softmax(logits[:, -1], dim=-1)  # Get last token predictions
+            predicted = torch.argmax(probs, dim=-1)
+            predicted_sequence.append(predicted.item())
+
+            decoder_input = torch.tensor([predicted_sequence]).to(device)
+
+    result = ''.join(map(str, predicted_sequence[1:]))  # Exclude start token
+    return label, result
     
 
-train(model, 2)
+# train(model, 2)
+label, result = validate(model)
+print(f"label: {label}, result: {result}")

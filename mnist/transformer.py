@@ -37,7 +37,8 @@ class Transformer(nn.Module):
         
        
         dec_embs = self.decoder_emb(decoder_input)
-        dec_pos_encodings = self.dec_pos_encodings[:seq_length, :].to(dec_embs.device)
+        dec_seq_length = dec_embs.size(1)
+        dec_pos_encodings = self.dec_pos_encodings[:dec_seq_length, :].to(dec_embs.device)
         dec_embs += dec_pos_encodings
         decoder_out = self.decoder(dec_embs, encoder_out)
         return self.final_layer(decoder_out)

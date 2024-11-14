@@ -21,7 +21,7 @@ class DecoderBlock(nn.Module):
         self_attn_embs = self.masked_self_attn(decoder_io)
         self_attn_embs = self.self_attn_norm(self_attn_embs + decoder_io)
 
-        cross_attn_embs = self.cross_attn(self_attn_embs, encoder_out)
+        cross_attn_embs = self.cross_attn(encoder_out, self_attn_embs)
         cross_attn_embs = self.cross_attn_norm(cross_attn_embs + self_attn_embs)
 
         out = self.ff(cross_attn_embs)

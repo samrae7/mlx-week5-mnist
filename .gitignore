@@ -1,3 +1,4 @@
 wandb
 __pycache__
 mnist/raw
+model_weights.pth
