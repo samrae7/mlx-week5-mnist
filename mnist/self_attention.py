@@ -19,7 +19,7 @@ class SelfAttention(nn.Module):
         q = self.linear_q(input)
         k = self.linear_k(input)
         v = self.linear_v(input)
-        #  starts with seq_length,embed_dim
+        #  starts with batch_size, seq_length,embed_dim
         # heads should have shape: [batch_size, num_heads, seq_length, head_dim]
         q = q.view(q.shape[0], q.shape[1], self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(k.shape[0], k.shape[1], self.num_heads, self.head_dim).transpose(1, 2)
