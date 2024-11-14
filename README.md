@@ -4,5 +4,5 @@ NB: for now ignore everything at the root level. This was the first task we were
 
 ## Instructions
 
-- cd into mnist
-- run `python tran.py`
+- `cd mnist`
+- `python train.py`
