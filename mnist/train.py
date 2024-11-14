@@ -10,8 +10,8 @@ from transformer import Transformer
 dataset = CombinedMNIST()
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-# 0-9 + start token
-vocab_size = 11
+# 0-9 + start token + end token
+vocab_size = 12
 model = Transformer(vocab_size=vocab_size)
 
 def test_pass_through(model):
@@ -82,17 +82,17 @@ def validate(model, model_path='model_weights.pth'):
     encoder_batch = encoder_batch.to(device)
     decoder_batch = decoder_batch.to(device)
     label_batch = label_batch.to(device)
-
-    label = label_batch[:1, :]
+    # get first label in batch and remove end token
+    label = label_batch[:1, :-1]
     predicted_sequence = [START_TOKEN]
     decoder_input = start_tensor
     # get batch of 1
     enc_in = encoder_batch[:1, :]
+    seq_length = encoder_batch.size(1)
     with torch.no_grad():
-        # logits = model(enc_in, start_tensor)
-        for _ in range(encoder_batch.size(1)):
+        for _ in range(seq_length):
             logits = model(enc_in, decoder_input)
-            # only want probs from most recent logit in sequence
+            # only want prob for most recent logit in sequence
             probs = nn.functional.softmax(logits[:, -1], dim=-1)  # Get last token predictions
             predicted = torch.argmax(probs, dim=-1)
             predicted_sequence.append(predicted.item())
@@ -104,5 +104,6 @@ def validate(model, model_path='model_weights.pth'):
     
 
 # train(model, 2)
+
 label, result = validate(model)
 print(f"label: {label}, result: {result}")

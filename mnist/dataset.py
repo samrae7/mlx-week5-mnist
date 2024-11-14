@@ -4,6 +4,7 @@ import random
 from PIL import Image
 
 START_TOKEN = 10
+END_TOKEN = 11
 
 class CombinedMNIST(torch.utils.data.Dataset):
     def __init__(self):
@@ -35,9 +36,11 @@ class CombinedMNIST(torch.utils.data.Dataset):
         encoder_in = torch.stack(quadrant_tensors)  # Shape will be [4, 784]
         labels = torch.tensor(labels)  # Shape will be [4]
         start_token = torch.tensor([START_TOKEN])
-        decoder_in = torch.cat((start_token, labels[:-1]))
+        end_token = torch.tensor([END_TOKEN])
+        decoder_in = torch.cat((start_token, labels))
+        target = torch.cat((labels, end_token))
         
-        return encoder_in, decoder_in, labels
+        return encoder_in, decoder_in, target
 
 # Test it
 ds = CombinedMNIST()

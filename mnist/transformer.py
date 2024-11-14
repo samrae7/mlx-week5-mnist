@@ -8,7 +8,8 @@ encoder_embed_dim = 64
 decoder_embed_dim = 64
 num_encoder_blocks = 4
 num_decoder_blocks = 4
-vocab_size = 11
+# 0-9 + start + end tokens
+vocab_size = 12
 
 class Transformer(nn.Module):
     def __init__(self, vocab_size = vocab_size, max_seq_length = 10):
