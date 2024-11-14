@@ -4,14 +4,14 @@ import torch.nn as nn
 from mnist_decoder import MNISTDecoder
 from encoder import Encoder
 
-vocab_size = 10
 encoder_embed_dim = 64
 decoder_embed_dim = 64
 num_encoder_blocks = 4
 num_decoder_blocks = 4
+vocab_size = 11
 
 class Transformer(nn.Module):
-    def __init__(self, max_seq_length = 10):
+    def __init__(self, vocab_size = vocab_size, max_seq_length = 10):
         super().__init__()
         # TODO dont hardcode 784
         self.encoder_projection = nn.Linear(784, encoder_embed_dim)

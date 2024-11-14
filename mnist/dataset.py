@@ -3,6 +3,8 @@ import torchvision
 import random
 from PIL import Image
 
+START_TOKEN = 10
+
 class CombinedMNIST(torch.utils.data.Dataset):
     def __init__(self):
         super().__init__()
@@ -12,16 +14,17 @@ class CombinedMNIST(torch.utils.data.Dataset):
         self.ds = torchvision.datasets.MNIST(root='.', train=True, download=True)
         # Store length of dataset
         self.ln = len(self.ds)
+        self.sample_indices = [random.sample(range(self.ln), 4) for _ in range(self.ln)]
     
     def __len__(self):
         return self.ln
     
     def __getitem__(self, idx):
-        idx = random.sample(range(self.ln), 4)
+        indices =  self.sample_indices[idx]
         quadrant_tensors = []
         labels = []
         
-        for i in idx:
+        for i in indices:
             x, y = self.ds[i]
             # Convert PIL image to tensor and flatten
             x_tensor = self.tf(x).view(-1)  # Will be shape [784] (28*28)
@@ -29,13 +32,15 @@ class CombinedMNIST(torch.utils.data.Dataset):
             labels.append(y)
         
         # Stack the quadrant tensors into a single tensor
-        quadrants = torch.stack(quadrant_tensors)  # Shape will be [4, 784]
+        encoder_in = torch.stack(quadrant_tensors)  # Shape will be [4, 784]
         labels = torch.tensor(labels)  # Shape will be [4]
+        start_token = torch.tensor([START_TOKEN])
+        decoder_in = torch.cat((start_token, labels[:-1]))
         
-        return quadrants, labels
+        return encoder_in, decoder_in, labels
 
 # Test it
 ds = CombinedMNIST()
-quadrants, labels = ds[0]
+quadrants, enc_in, labels = ds[0]
 print("Quadrants shape:", quadrants.shape)  # Should be [4, 784]
 print("Labels shape:", labels.shape)      # Should be [4]
