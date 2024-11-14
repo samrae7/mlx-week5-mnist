@@ -29,6 +29,7 @@ class Decoder(nn.Module):
         seq_length = input_embs.size(0)
         pos_encodings = self.pos_encodings[:seq_length, :].to(input_embs.device)
         input_embs += pos_encodings
+        # !!!!!!! TODO !!!!!!! ModuleList. This probably caused the bug with the training overwriting each other
         for i in range(self.num_layers):
             out = self.block(input_embs)
         out = self.linear(out)
